@@ -37,7 +37,7 @@ colormap = np.array([
 ], dtype=np.float) / 255 
 
 default_text = \
-    "这么说你很勇的哦？"
+    "金鳞岂是池中物，一遇风云变化龙。"
 
 
 class UI(QDialog):
@@ -53,7 +53,7 @@ class UI(QDialog):
         embed_ax, _ = self.current_ax if which == "current" else self.gen_ax
         embed_ax.figure.suptitle("" if embed is None else name)
         
-        # Embedding
+        ## Embedding
         # Clear the plot
         if len(embed_ax.images) > 0:
             embed_ax.images[0].colorbar.remove()
@@ -71,7 +71,7 @@ class UI(QDialog):
     def draw_spec(self, spec, which):
         _, spec_ax = self.current_ax if which == "current" else self.gen_ax
 
-        # Spectrogram
+        ## Spectrogram
         # Draw the spectrogram
         spec_ax.clear()
         if spec is not None:
@@ -137,7 +137,7 @@ class UI(QDialog):
             filter="Audio Files (*.flac *.wav)"
         )
         if fpath:
-            # Default format is wav
+            #Default format is wav
             if Path(fpath).suffix == "":
                 fpath += ".wav"
             sf.write(fpath, wav, sample_rate)
@@ -424,13 +424,14 @@ class UI(QDialog):
         self.setWindowIcon(QtGui.QIcon('toolbox\\assets\\mb.png'))
         self.setWindowFlag(Qt.WindowMinimizeButtonHint, True)
         self.setWindowFlag(Qt.WindowMaximizeButtonHint, True)
-
+        self.setMinimumSize(1000, 650)
+        
         font = QtGui.QFont()
-        font.setPointSize(10)  # 括号里的数字可以设置成自己想要的字体大小
+        font.setPointSize(9)  # 括号里的数字可以设置成自己想要的字体大小
         font.setFamily("Microsoft YaHei")   # font.setFamily("SimHei")  # 黑体
         self.setFont(font)
 
-        # Main layouts
+        ## Main layouts
         # Root
         root_layout = QGridLayout()
         self.setLayout(root_layout)
@@ -455,7 +456,7 @@ class UI(QDialog):
         self.projections_layout = QVBoxLayout()
         root_layout.addLayout(self.projections_layout, 1, 8, 2, 2)
         
-        # Projections
+        ## Projections
         # UMap
         fig, self.umap_ax = plt.subplots(figsize=(3, 3), facecolor="#F0F0F0")
         fig.subplots_adjust(left=0.02, bottom=0.02, right=0.98, top=0.98)
@@ -465,7 +466,7 @@ class UI(QDialog):
         self.projections_layout.addWidget(self.clear_button)
 
 
-        # Browser
+        ## Browser
         # Dataset, speaker and utterance selection
         i = 0
         
@@ -537,10 +538,10 @@ class UI(QDialog):
         i += 1
         self.vocoder_box = QComboBox()
         model_layout.setColumnMinimumWidth(i, 40)
-        model_layout.addWidget(QLabel("Vocoder(声码器):"), i, 0)
+        model_layout.addWidget(QLabel("Vocoder:(声码器)"), i, 0)
         model_layout.addWidget(self.vocoder_box, i, 1)
-
-        # Replay & Save Audio
+        
+        #Replay & Save Audio
         i = 0
         output_layout.addWidget(QLabel("<b>Toolbox Output:</b>"), i, 0)
         self.waves_cb = QComboBox()
@@ -548,22 +549,18 @@ class UI(QDialog):
         self.waves_cb.setModel(self.waves_cb_model)
         self.waves_cb.setToolTip("Select one of the last generated waves in this section for replaying or exporting")
         output_layout.addWidget(self.waves_cb, i, 1)
-
         self.replay_wav_button = QPushButton("Replay")
         self.replay_wav_button.setToolTip("Replay last generated vocoder")
         output_layout.addWidget(self.replay_wav_button, i, 2)
-
         self.export_wav_button = QPushButton("Export")
         self.export_wav_button.setToolTip("Save last generated vocoder audio in filesystem as a wav file")
         output_layout.addWidget(self.export_wav_button, i, 3)
-
+        self.audio_out_devices_cb=QComboBox()
         i += 1
-        self.audio_out_devices_cb = QComboBox()
-        self.audio_out_devices_cb.setMinimumWidth(50)
         output_layout.addWidget(QLabel("<b>Audio Output</b>"), i, 0)
         output_layout.addWidget(self.audio_out_devices_cb, i, 1)
 
-        # Embed & spectrograms
+        ## Embed & spectrograms
         vis_layout.addStretch()
 
         gridspec_kw = {"width_ratios": [1, 4]}
@@ -632,6 +629,19 @@ class UI(QDialog):
         self.token_slider.valueChanged.connect(lambda s: self.token_value_label.setNum(s))
         layout_seed.addWidget(self.token_value_label, 2, 1)
         layout_seed.addWidget(self.token_slider, 2, 3)
+
+        self.length_slider = QSlider(Qt.Horizontal)
+        self.length_slider.setTickInterval(1)
+        self.length_slider.setFocusPolicy(Qt.NoFocus)
+        self.length_slider.setSingleStep(1)
+        self.length_slider.setRange(1, 10)
+        self.length_value_label = QLabel("2")
+        self.length_slider.setValue(2)
+        layout_seed.addWidget(QLabel("MaxLength(最大句长):"), 3, 0)
+
+        self.length_slider.valueChanged.connect(lambda s: self.length_value_label.setNum(s))
+        layout_seed.addWidget(self.length_value_label, 3, 1)
+        layout_seed.addWidget(self.length_slider, 3, 3)
 
         gen_layout.addLayout(layout_seed)
 
